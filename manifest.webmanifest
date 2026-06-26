@@ -1,0 +1,47 @@
+{
+  "name": "Campusi — სტუდენტური პლატფორმა",
+  "short_name": "Campusi",
+  "description": "უნივერსიტეტები, ცხრილი, რესურსები და გამოცდის კალენდარი.",
+  "start_url": "./#/schedule",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#b91c1c",
+  "lang": "ka",
+  "dir": "ltr",
+  "icons": [
+    { "src": "./assets/logo-mark.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/logo-mark.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/logo-mark.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "დღევანდელი ცხრილი",
+      "short_name": "ცხრილი",
+      "description": "ნახე დღევანდელი ლექციები",
+      "url": "./#/schedule",
+      "icons": [{ "src": "./assets/logo-mark.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "შემდეგი ლექცია",
+      "short_name": "შემდეგი",
+      "description": "გადახტი დეშბორდზე და ნახე შემდეგი ლექცია",
+      "url": "./#/",
+      "icons": [{ "src": "./assets/logo-mark.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "+ დაამატე ლექცია",
+      "short_name": "დამატება",
+      "description": "სწრაფი დამატება ცხრილში",
+      "url": "./#/schedule?add=1",
+      "icons": [{ "src": "./assets/logo-mark.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "სიახლეები",
+      "short_name": "სიახლეები",
+      "url": "./#/news",
+      "icons": [{ "src": "./assets/logo-mark.png", "sizes": "192x192" }]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "campus-static-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild js/app.js --bundle --format=iife --outfile=js/app.bundle.js --log-level=warning",
+    "watch": "esbuild js/app.js --bundle --format=iife --outfile=js/app.bundle.js --watch --log-level=info",
+    "dev": "npx -y http-server . -p 5173 -c-1"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0"
+  }
+}

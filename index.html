@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Campusi</title>
+  <meta name="description" content="ქართული უნივერსიტეტების, ფაკულტეტებისა და საგნების შესახებ ინფორმაცია, ლექტორების შეფასებები, რესურსები და გამოცდის კალენდარი." />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="icon" href="./assets/logo-mark.png" />
+  <link rel="apple-touch-icon" href="./assets/logo-mark.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/logo-mark.png" />
+  <link rel="apple-touch-icon" sizes="167x167" href="./assets/logo-mark.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="./assets/logo-mark.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="./assets/logo-mark.png" />
+  <link rel="apple-touch-startup-image" href="./assets/logo-mark.png" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <meta name="application-name" content="Campusi" />
+  <meta name="apple-mobile-web-app-title" content="Campusi" />
+  <link rel="stylesheet" href="./css/styles.css?v=20260626-campusi" />
+  
+  <script>
+    (function(){try{var t=localStorage.getItem("campus.theme")||"light";document.documentElement.setAttribute("data-theme",t);}catch(e){}})();
+  </script>
+
+</head>
+<body>
+  <a href="#app" class="skip-link">გადადი მთავარ კონტენტზე</a>
+
+  <header class="header glass" id="appHeader" role="banner">
+    <div class="container header-inner">
+      <a href="#/" class="logo" aria-label="Campusi — მთავარი">
+        <img src="./assets/logo-mark.png" alt="Campusi" class="logo-mark-img" width="36" height="36" />
+        <span class="logo-text">Campusi</span>
+      </a>
+      <nav class="nav" id="nav" aria-label="ძირითადი ნავიგაცია">
+        <a href="#/">დეშბორდი</a>
+        <a href="#/universities">უნივერსიტეტები</a>
+        <a href="#/news">სიახლეები</a>
+        <a href="#/faq">FAQ</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn-icon" id="searchBtn" type="button" aria-label="ძიება (Ctrl+K)" title="ძიება (Ctrl+K)">🔎</button>
+        <button class="btn-icon" id="themeBtn" type="button" aria-label="თემის გადართვა" title="თემის გადართვა">🌙</button>
+        <div id="authSlot"></div>
+      </div>
+    </div>
+  </header>
+
+  <main id="app" class="container main" role="main" tabindex="-1">
+    <div class="boot-loader" role="status" aria-live="polite" aria-label="იტვირთება"><div class="spinner"></div></div>
+  </main>
+
+  <footer class="footer" id="appFooter">
+    <div class="container">
+      <p>© <span id="year"></span> Campusi · სტუდენტური პლატფორმა საქართველოში</p>
+    </div>
+  </footer>
+
+  <!-- Mobile bottom tab-bar -->
+  <nav class="mobile-tabs" id="mobileTabs" aria-label="მთავარი ნავიგაცია"></nav>
+
+  <!-- Mobile "more" bottom sheet -->
+  <div class="sheet-backdrop" id="moreBackdrop" hidden></div>
+  <aside class="more-sheet" id="moreSheet" hidden aria-label="მეტი ფუნქცია"></aside>
+
+  <!-- Generic modal (used by schedule add form, etc) -->
+  <div class="modal-backdrop" id="modalBackdrop" hidden>
+    <div class="modal-card" id="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalCardTitle"></div>
+  </div>
+
+  <!-- Command Palette -->
+  <div class="modal-backdrop" id="paletteBackdrop" hidden>
+    <div class="palette" role="dialog" aria-modal="true" aria-label="ძიება">
+      <label for="paletteInput" class="sr-only">ძიება</label>
+      <input type="search" id="paletteInput" role="combobox" aria-expanded="true" aria-controls="paletteResults" aria-autocomplete="list" placeholder="მოძებნე უნივერსიტეტი, საგანი, გვერდი..." autocomplete="off" />
+      <ul id="paletteResults" class="palette-results" role="listbox" aria-label="ძიების შედეგები"></ul>
+      <div class="palette-hint" aria-hidden="true">↑↓ ნავიგაცია · ↵ არჩევა · Esc დახურვა</div>
+    </div>
+  </div>
+
+  <!-- Toast (live region for status messages) -->
+  <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
+  <template id="loginPageTemplate">
+    <div class="auth-shell auth-shell--pretty auth-shell--compact" data-init="authInit">
+      <aside class="auth-side" aria-label="პლატფორმის შესახებ">
+        <div class="auth-side-orb auth-side-orb--a" aria-hidden="true"></div>
+        <div class="auth-side-orb auth-side-orb--b" aria-hidden="true"></div>
+        <div class="auth-side-inner">
+          <div class="auth-brand">
+            <img src="./assets/logo-full-light.png" alt="Campusi!" class="auth-logo auth-logo--light" width="340" height="340" />
+            <img src="./assets/logo-full-dark.png" alt="Campusi!" class="auth-logo auth-logo--dark" width="340" height="340" />
+          </div>
+          <div class="auth-pill" aria-hidden="true">🎓 სტუდენტური ეკოსისტემა</div>
+          <h2 class="auth-tagline">საქართველოს <span class="text-gradient">ცენტრალური</span> სტუდენტური პლატფორმა</h2>
+          <p class="muted" style="font-size:13.5px;line-height:1.55">
+            შედით საგანმანათლებლო ელფოსტით და მიიღეთ წვდომა აკადემიურ რესურსებსა და Campusi-ის ხელსაწყოებზე.
+          </p>
+          <ul class="auth-features">
+            <li>📚 სტუდენტი — ფაკულტეტი, GPA, ცხრილი</li>
+            <li>🏆 ქულები, ბეჯები და დონეები</li>
+            <li>💬 საგნობრივი ფორუმები</li>
+          </ul>
+          <div class="auth-trust">
+            <span>🔒 edu.ge ვერიფიკაცია</span>
+            <span>·</span>
+            <span>⚡ სწრაფი ნავიგაცია</span>
+          </div>
+        </div>
+      </aside>
+
+      <section class="auth-form-wrap" aria-label="ავტორიზაცია">
+        <div class="auth-tabs" role="tablist" aria-label="ავტორიზაცია ან რეგისტრაცია" onkeydown="__campus.authTabKey(event)">
+          <button type="button" class="{{logintabactiveclass}}" data-mode="login" role="tab" id="tabLogin" aria-controls="loginCard" aria-selected="{{logintabselected}}" tabindex="{{logintabindex}}" onclick="__campus.toggleAuth('login')">შესვლა</button>
+          <button type="button" class="{{regtabactiveclass}}" data-mode="register" role="tab" id="tabRegister" aria-controls="regCard" aria-selected="{{regtabselected}}" tabindex="{{regtabindex}}" onclick="__campus.toggleAuth('register')">რეგისტრაცია</button>
+        </div>
+
+        <div class="auth-note" role="note" data-firebase-note>
+          ℹ️ გაიარე რეგისტრაცია და მყისიერად შემოდი — შენი ანგარიში შეინახება ამ ბრაუზერში.
+          <br><small class="muted">ადმინის წვდომისთვის გამოიყენე: <b>nika.gogokhiya27@gmail.com</b></small>
+        </div>
+
+        <div id="loginCard" class="auth-card" role="tabpanel" aria-labelledby="tabLogin" {{logincardhidden}}>
+          <form onsubmit="__campus.doLogin(event)" novalidate aria-describedby="loginStatus">
+            <div class="field">
+              <label for="loginEmail">ელფოსტა</label>
+              <input type="email" id="loginEmail" name="email" required autocomplete="email" inputmode="email" spellcheck="false" autocapitalize="off" placeholder="" aria-required="true" />
+              <small id="loginEmailErr" class="field-err"></small>
+            </div>
+            <div class="field">
+              <label for="loginPassword">პაროლი</label>
+              <input type="password" id="loginPassword" name="password" required minlength="6" autocomplete="current-password" placeholder="••••••" aria-required="true" />
+              <small id="loginPasswordErr" class="field-err"></small>
+            </div>
+            <button class="btn btn-primary auth-submit" type="submit">შესვლა</button>
+            <p id="loginStatus" class="form-status" role="alert" aria-live="assertive"></p>
+            <div id="resendBox" hidden style="margin-top:10px;text-align:center">
+              <button type="button" class="btn btn-ghost" onclick="__campus.doResend(this)">ხელახლა გავაგზავნოთ დადასტურების ბმული</button>
+            </div>
+            <p class="muted" style="margin-top:10px;text-align:center;font-size:13px">
+              ჯერ არ გაქვს ანგარიში?
+              <a class="auth-switch-link" href="#/login" onclick="__campus.toggleAuth('register'); return false;"><b>გაიარე რეგისტრაცია</b></a>
+            </p>
+          </form>
+        </div>
+
+        <div id="regCard" class="auth-card" role="tabpanel" aria-labelledby="tabRegister" {{regcardhidden}}>
+          <form onsubmit="__campus.doRegister(event)" novalidate aria-describedby="regStatus">
+            {{rolepickerhtml}}
+            <div class="grid-2">
+              <div class="field">
+                <label for="regFirstName">სახელი</label>
+                <input type="text" id="regFirstName" name="firstName" required autocomplete="given-name" placeholder="" pattern="[\u10D0-\u10FA\u10FC-\u10FF\s\-]+" title="მხოლოდ ქართული ასოები" aria-required="true" />
+                <small id="regFirstNameErr" class="field-err"></small>
+              </div>
+              <div class="field">
+                <label for="regLastName">გვარი</label>
+                <input type="text" id="regLastName" name="lastName" required autocomplete="family-name" placeholder="" pattern="[\u10D0-\u10FA\u10FC-\u10FF\s\-]+" title="მხოლოდ ქართული ასოები" aria-required="true" />
+                <small id="regLastNameErr" class="field-err"></small>
+              </div>
+            </div>
+            <div class="field">
+              <label for="regPersonalId">პირადი ნომერი</label>
+              <input type="text" id="regPersonalId" name="personalId" required inputmode="numeric" pattern="\d{11}" maxlength="11" placeholder="" autocomplete="off" aria-required="true" />
+              <small id="regPersonalIdErr" class="field-err"></small>
+            </div>
+            <div class="field">
+              <label for="regEmail">ელფოსტა</label>
+              <input type="email" id="regEmail" name="email" required autocomplete="email" inputmode="email" spellcheck="false" autocapitalize="off" placeholder="" aria-required="true" />
+              <small id="regEmailErr" class="field-err"></small>
+            </div>
+            <div class="field">
+              <label for="regPhone">ტელეფონის ნომერი</label>
+              <input type="tel" id="regPhone" name="phone" required autocomplete="tel" placeholder="" aria-required="true" />
+              <small id="regPhoneErr" class="field-err"></small>
+            </div>
+            <div class="field">
+              <label for="regPassword">პაროლი <span class="muted">(მინ. 6 სიმბოლო)</span></label>
+              <input type="password" id="regPassword" name="password" required minlength="6" autocomplete="new-password" placeholder="••••••" aria-required="true" />
+              <small id="regPasswordErr" class="field-err"></small>
+            </div>
+            <button class="btn btn-primary auth-submit" type="submit">რეგისტრაცია</button>
+            <p id="regStatus" class="form-status" role="alert" aria-live="assertive"></p>
+            <p class="muted" style="margin-top:10px;text-align:center;font-size:13px">
+              უკვე გაქვს ანგარიში?
+              <a class="auth-switch-link" href="#" onclick="event.preventDefault();__campus.toggleAuth('login')"><b>შესვლა</b></a>
+            </p>
+          </form>
+        </div>
+
+        <ul class="auth-features auth-features--mobile" aria-hidden="true">
+          <li>📚 სტუდენტი — ფაკულტეტი, GPA, ცხრილი</li>
+          <li>🏆 ქულები, ბეჯები და დონეები</li>
+          <li>💬 საგნობრივი ფორუმები</li>
+        </ul>
+
+
+        <div class="terms-links" aria-label="წესები და პირობები">
+          <button type="button" class="terms-link" onclick="__campus.openTerms('terms')">📜 Terms of Use</button>
+          <button type="button" class="terms-link" onclick="__campus.openTerms('privacy')">🔒 Privacy Policy</button>
+          <button type="button" class="terms-link" onclick="__campus.openTerms('community')">👥 Community Guidelines</button>
+          <button type="button" class="terms-link" onclick="__campus.openTerms('copyright')">©️ Copyright / Takedown</button>
+        </div>
+
+        <p class="muted auth-agreement" style="margin-top:10px;text-align:center;font-size:11.5px;line-height:1.5">
+          შესვლით ან რეგისტრაციით ეთანხმებით Campusi-ის გამოყენების პირობებს და კონფიდენციალურობის პოლიტიკას.
+        </p>
+      </section>
+    </div>
+    <div id="termsModal"></div>
+  </template>
+
+  <template id="termsTemplate-terms" data-en="Terms of Use" data-ka="Campusi-ის გამოყენების წესები და პირობები">
+    <p>Campusi-ის გამოყენებით თქვენ ეთანხმებით ქვემოთ მოცემულ პირობებს.</p>
+    <h4>პლატფორმის მიზანი</h4>
+    <p>Campusi წარმოადგენს დამოუკიდებელ სტუდენტურ ციფრულ პლატფორმას, რომელიც შექმნილია აკადემიური ინფორმაციის, რესურსების და სტუდენტური სერვისების ხელმისაწვდომობის მიზნით.</p>
+    <p>Campusi არ წარმოადგენს უნივერსიტეტის ოფიციალურ სისტემას, გარდა იმ შემთხვევისა, როდესაც კონკრეტული პარტნიორობა პირდაპირ არის მითითებული.</p>
+    <h4>ანგარიშის შექმნა</h4>
+    <p>რეგისტრაციისას მომხმარებელი ვალდებულია მიუთითოს სწორი ინფორმაცია.</p>
+    <p>მომხმარებელი პასუხისმგებელია საკუთარი ანგარიშის უსაფრთხოებაზე და პაროლის დაცვაზე.</p>
+    <h4>აკრძალული ქმედებები</h4>
+    <p>აკრძალულია:</p>
+    <ul>
+      <li>ყალბი ინფორმაციის გავრცელება</li>
+      <li>სხვისი ანგარიშის გამოყენება</li>
+      <li>სპამის გავრცელება</li>
+      <li>შეურაცხმყოფელი ან მავნე შინაარსის განთავსება</li>
+      <li>პლატფორმის ბოროტად გამოყენება</li>
+      <li>საავტორო უფლებების დარღვევა</li>
+    </ul>
+    <h4>ანგარიშის შეზღუდვა</h4>
+    <p>Campusi უფლებას იტოვებს დროებით ან მუდმივად შეზღუდოს ანგარიში წესების დარღვევის შემთხვევაში.</p>
+    <h4>პასუხისმგებლობის შეზღუდვა</h4>
+    <p>Campusi არ იძლევა გარანტიას პლატფორმაზე არსებული ყველა ინფორმაციის სრულ სიზუსტეზე. მომხმარებლის მიერ გამოქვეყნებული შეფასებები და კომენტარები წარმოადგენს მათი ავტორების პირად მოსაზრებებს.</p>
+    <h4>პირობების ცვლილება</h4>
+    <p>Campusi უფლებას იტოვებს შეცვალოს პირობები და საჭიროების შემთხვევაში აცნობოს მომხმარებლებს.</p>
+  </template>
+
+  <template id="termsTemplate-privacy" data-en="Privacy Policy" data-ka="როგორ ვაგროვებთ, ვიყენებთ და ვიცავთ თქვენს მონაცემებს">
+    <p>Campusi პატივს სცემს მომხმარებლის კონფიდენციალურობას.</p>
+    <h4>რა ინფორმაციას ვაგროვებთ</h4>
+    <p>ჩვენ შეიძლება შევაგროვოთ:</p>
+    <ul>
+      <li>სახელი</li><li>ელფოსტა</li><li>უნივერსიტეტი</li><li>ფაკულტეტი</li>
+      <li>პროფილის ინფორმაცია</li><li>აქტივობის მონაცემები</li><li>ტექნიკური ინფორმაცია</li>
+    </ul>
+    <h4>მონაცემების გამოყენება</h4>
+    <p>მონაცემები გამოიყენება:</p>
+    <ul>
+      <li>ავტორიზაციისთვის</li><li>პერსონალიზაციისთვის</li>
+      <li>პლატფორმის უსაფრთხოებისთვის</li><li>ფუნქციების გაუმჯობესებისთვის</li>
+    </ul>
+    <h4>მონაცემების დაცვა</h4>
+    <p>Campusi იყენებს ტექნიკურ და ორგანიზაციულ ზომებს მომხმარებლის მონაცემების დასაცავად.</p>
+    <h4>მონაცემების გაზიარება</h4>
+    <p>Campusi არ ყიდის მომხმარებლის პერსონალურ მონაცემებს მესამე პირებზე.</p>
+    <h4>მომხმარებლის უფლებები</h4>
+    <p>მომხმარებელს შეუძლია:</p>
+    <ul>
+      <li>საკუთარი მონაცემების ნახვა</li>
+      <li>მათი განახლება</li>
+      <li>ანგარიშის ან მონაცემების წაშლის მოთხოვნა</li>
+    </ul>
+  </template>
+
+  <template id="termsTemplate-community" data-en="Community Guidelines" data-ka="საზოგადოების წესები უსაფრთხო სტუდენტური გარემოსთვის">
+    <p>Campusi-ის მიზანია უსაფრთხო და პატივისცემაზე დაფუძნებული სტუდენტური სივრცის შექმნა.</p>
+    <h4>დაშვებულია:</h4>
+    <ul>
+      <li>✓ აკადემიური დისკუსიები</li>
+      <li>✓ გამოცდილების გაზიარება</li>
+      <li>✓ სასწავლო რესურსების გაზიარება</li>
+      <li>✓ დახმარება სხვა სტუდენტებისთვის</li>
+    </ul>
+    <h4>აკრძალულია:</h4>
+    <ul>
+      <li>✗ შეურაცხმყოფელი კომენტარები</li>
+      <li>✗ სიძულვილის ენა</li>
+      <li>✗ მუქარა</li>
+      <li>✗ სპამი</li>
+      <li>✗ ყალბი ინფორმაცია</li>
+      <li>✗ სხვისი პერსონალური ინფორმაციის გამოქვეყნება</li>
+    </ul>
+    <p>ლექტორების შეფასებები უნდა ეფუძნებოდეს პირად გამოცდილებას და წარმოდგენილი იყოს პატივისცემით.</p>
+  </template>
+
+  <template id="termsTemplate-copyright" data-en="Copyright / Takedown Policy" data-ka="საავტორო უფლებების დაცვისა და მოთხოვნების პროცედურა">
+    <p>თუ თვლით, რომ Campusi-ზე არსებული მასალა არღვევს თქვენს საავტორო უფლებებს, დაგვიკავშირდით და მოგვაწოდეთ:</p>
+    <ul>
+      <li>სახელი</li>
+      <li>საკონტაქტო ინფორმაცია</li>
+      <li>მასალის აღწერა</li>
+      <li>ბმული</li>
+      <li>მოთხოვნის საფუძველი</li>
+    </ul>
+    <p>Campusi განიხილავს მოთხოვნას გონივრულ ვადაში და საჭიროების შემთხვევაში შეზღუდავს ან წაშლის მასალას.</p>
+  </template>
+
+  <!--
+    ============================================================
+    i18n: ყველა პანელის ტექსტი ცოცხალი HTML-ის სახით.
+    რედაქტირება პირდაპირ <span data-i18n="key">ტექსტი</span>-ში.
+    ცვლილებები აისახება მომდევნო რენდერზე (route ცვლილება / refresh).
+    JS ფუნქცია: T("key", { var: "value" })  →  ცვლადები {var} ფორმატით.
+    ============================================================
+  -->
+  <div id="i18n" hidden aria-hidden="true">
+    <!-- ===== Dashboard ===== -->
+    <span data-i18n="dash.greet.dawn">კარგი ღამე</span>
+    <span data-i18n="dash.greet.morning">დილა მშვიდობისა</span>
+    <span data-i18n="dash.greet.afternoon">მოგესალმები</span>
+    <span data-i18n="dash.greet.evening">საღამო მშვიდობისა</span>
+    <span data-i18n="dash.hero.sub">დღის შეჯამება.</span>
+
+    <span data-i18n="dash.next.lecture.label">მომდევნო ლექცია</span>
+    <span data-i18n="dash.next.exam.label">დღევანდელი გამოცდა</span>
+    <span data-i18n="dash.next.lecture.fallback">ლექცია</span>
+    <span data-i18n="dash.next.exam.fallback">გამოცდა</span>
+    <span data-i18n="dash.next.exam.timeToday">დღეს</span>
+    <span data-i18n="dash.next.meta.time">დრო</span>
+    <span data-i18n="dash.next.meta.where">ოთახი</span>
+    <span data-i18n="dash.next.meta.who">ლექტორი</span>
+    <span data-i18n="dash.next.free.kind">დღევანდელი დღე</span>
+    <span data-i18n="dash.next.free.title">აქტივობა არ არის დაგეგმილი</span>
+
+    <span data-i18n="dash.countdown.now">ახლა მიმდინარეობს</span>
+    <span data-i18n="dash.countdown.mins">იწყება {n} წუთში</span>
+    <span data-i18n="dash.countdown.hoursOnly">იწყება {h} სთ-ში</span>
+    <span data-i18n="dash.countdown.hoursMins">იწყება {h} სთ {m} წთ-ში</span>
+
+    <span data-i18n="dash.reminders.label">შემახსენებლები</span>
+    <span data-i18n="dash.reminders.full">სრულად →</span>
+    <span data-i18n="dash.reminders.quiz">ქვიზი</span>
+    <span data-i18n="dash.reminders.exam">გამოცდა</span>
+    <span data-i18n="dash.reminders.today">დღეს</span>
+
+    <span data-i18n="dash.today.section">დღევანდელი დღე</span>
+    <span data-i18n="dash.today.empty.title">დღეს აქტივობა არ გაქვს</span>
+    <span data-i18n="dash.today.empty.schedule">ცხრილი →</span>
+    <span data-i18n="dash.today.empty.calendar">კალენდარი →</span>
+
+    <span data-i18n="dash.today.schedule.label">დღევანდელი ცხრილი</span>
+    <span data-i18n="dash.today.schedule.full">სრულად →</span>
+    <span data-i18n="dash.today.lectures.empty">დღეს ლექციები აღარ გაქვს.</span>
+    <span data-i18n="dash.today.exams.label">უახლოესი გამოცდები</span>
+    <span data-i18n="dash.today.exams.empty">გამოცდები არ დაგიმატებია.</span>
+
+    <span data-i18n="dash.sem.eyebrow">სემესტრი</span>
+    <span data-i18n="dash.sem.finalsLeft">ფინალურამდე — <b>{n}</b> დღე</span>
+    <span data-i18n="dash.sem.daysLeft">სემესტრის ბოლომდე — <b>{n}</b> დღე</span>
+    <span data-i18n="dash.sem.progress.aria">სემესტრის წინსვლა</span>
+
+    <span data-i18n="dash.news.eyebrow">სიახლეები</span>
+    <span data-i18n="dash.news.full">სრულად →</span>
+    <span data-i18n="dash.news.pinned.aria">დაპინული</span>
+
+    <span data-i18n="dash.exam.mode.title">🎓 Exam Mode</span>
+    <span data-i18n="dash.exam.mode.body">დამხმარე ელემენტები დროებით დამალულია.</span>
+
+    <span data-i18n="dash.quick.eyebrow">სწრაფი ხელსაწყოები</span>
+    <span data-i18n="dash.quick.forums.title">ფორუმები</span>
+    <span data-i18n="dash.quick.forums.body">თითოეული საგნის დისკუსიები</span>
+    <span data-i18n="dash.quick.resources.title">რესურსები</span>
+    <span data-i18n="dash.quick.resources.body">გამოქვეყნებული მასალები</span>
+    <span data-i18n="dash.quick.faq.title">FAQ</span>
+    <span data-i18n="dash.quick.faq.body">ხშირი კითხვები</span>
+    <span data-i18n="dash.quick.lecturers.title">ლექტორები</span>
+    <span data-i18n="dash.quick.lecturers.body">პროფესორების ბაზა</span>
+    <span data-i18n="dash.quick.calendar.title">კალენდარი</span>
+    <span data-i18n="dash.quick.calendar.body">შენი განრიგი</span>
+    <span data-i18n="dash.quick.gpa.title">GPA კალკულატორი</span>
+    <span data-i18n="dash.quick.gpa.body">საშუალო ქულის გამოთვლა</span>
+    <span data-i18n="dash.quick.favorites.title">ფავორიტები</span>
+    <span data-i18n="dash.quick.favorites.body">{n} შენახული</span>
+
+    <span data-i18n="dash.chips.eyebrow">სხვა</span>
+    <span data-i18n="dash.chips.news">სიახლეები</span>
+    <span data-i18n="dash.chips.lecturers">ლექტორები</span>
+    <span data-i18n="dash.chips.academic">კალენდარი</span>
+    
+    <span data-i18n="dash.chips.universities">უნივერსიტეტები</span>
+    <span data-i18n="dash.chips.search">ძიება</span>
+    <span data-i18n="dash.chips.profile">პროფილი</span>
+
+    <!-- ========== ფორუმი (Forum / Chats) ========== -->
+    <span data-i18n="forum.required.firebase">ფორუმი მოითხოვს Firebase-ის კონფიგურაციას.</span>
+    <span data-i18n="forum.required.auth">გთხოვ, გაიარე ავტორიზაცია ფორუმში მონაწილეობისთვის.</span>
+    <span data-i18n="forum.admin.title">🛡️ ყველა საგნობრივი ფორუმი</span>
+    <span data-i18n="forum.admin.badge">ადმინი</span>
+    <span data-i18n="forum.admin.sub">ხედავ ყველა ფაკულტეტის ფორუმს მოდერაციის მიზნით.</span>
+    <span data-i18n="forum.empty.subjects">საგნები ჯერ არ დაემატა.</span>
+    <span data-i18n="forum.faculty.required">ჯერ აირჩიე ფაკულტეტი.</span>
+    <span data-i18n="forum.faculty.cta">დაიწყე</span>
+    <span data-i18n="forum.list.title">🗣️ საგნობრივი ფორუმები</span>
+    <span data-i18n="forum.list.sub">დაუკავშირდი იმავე ფაკულტეტისა და საგნის სტუდენტებს. ფორუმი იქმნება ავტომატურად პირველი მონაწილის შესვლისთანავე.</span>
+    <span data-i18n="forum.list.empty">თქვენი ფაკულტეტისთვის ფორუმები ჯერ არ ჩამოყალიბებულა — შეამოწმეთ მოგვიანებით.</span>
+    <span data-i18n="forum.card.enter">შესვლა →</span>
+    <span data-i18n="forum.room.signin">გთხოვ შეხვიდე.</span>
+    <span data-i18n="forum.room.firebase">Firebase საჭიროა.</span>
+    <span data-i18n="forum.room.invalidId">არასწორი ფორუმის იდენტიფიკატორი</span>
+    <span data-i18n="forum.room.accessDenied">ამ ფორუმში წვდომა შეზღუდულია — განკუთვნილია მხოლოდ ამ ფაკულტეტის სტუდენტებისთვის.</span>
+    <span data-i18n="forum.room.loadFail">ფორუმის ჩატვირთვა ვერ მოხერხდა: {err}</span>
+    <span data-i18n="forum.msgs.loadFail">ფორუმის წერილების ჩატვირთვა ვერ მოხერხდა: {err}</span>
+    <span data-i18n="forum.msgs.empty">ფორუმში ჯერ არცერთი წერილი არ გამოქვეყნებულა. დაიწყე დისკუსია 👋</span>
+    <span data-i18n="forum.parts.title">👥 მონაწილეები</span>
+    <span data-i18n="forum.parts.empty">ჯერ მონაწილეები არ არიან.</span>
+    <span data-i18n="forum.parts.you">(შენ)</span>
+    <span data-i18n="forum.parts.unknown">უცნობი</span>
+    <span data-i18n="forum.parts.kickTitle">გაგდება ფორუმიდან</span>
+    <span data-i18n="forum.msg.unknownSender">სტუდენტი</span>
+    <span data-i18n="forum.msg.delTitle">წაშლა</span>
+    <span data-i18n="forum.msg.reportTitle">გასაჩივრება</span>
+    <span data-i18n="forum.composer.placeholder">დაწერე წერილი ფორუმში…</span>
+    <span data-i18n="forum.composer.send">გაგზავნა</span>
+    <span data-i18n="forum.back">← უკან</span>
+    <span data-i18n="forum.head.partsSuffix">მონაწილე</span>
+    <span data-i18n="forum.send.fail">ვერ გაიგზავნა: {err}</span>
+    <span data-i18n="forum.kick.adminOnly">მხოლოდ ადმინისთვის</span>
+    <span data-i18n="forum.kick.confirm">გავაგდოთ "{name}" ფორუმიდან? წაიშლება ამ მონაწილის ყველა წერილიც.</span>
+    <span data-i18n="forum.kick.ok">მონაწილე გაშვებულია</span>
+    <span data-i18n="forum.kick.fail">ვერ მოხერხდა: {err}</span>
+    <span data-i18n="forum.del.confirm">წაიშალოს ეს შეტყობინება?</span>
+    <span data-i18n="forum.del.ok">წაიშალა</span>
+    <span data-i18n="forum.del.fail">ვერ წაიშალა: {err}</span>
+    <span data-i18n="forum.member.notFound">მომხმარებელი ვერ მოიძებნა</span>
+    <span data-i18n="forum.member.fn">სახელი</span>
+    <span data-i18n="forum.member.ln">გვარი</span>
+    <span data-i18n="forum.member.noEmail">მეილი მიუწვდომელია</span>
+    <span data-i18n="forum.member.close">დახურვა</span>
+    <span data-i18n="forum.member.sendMail">✉️ მეილის გაგზავნა</span>
+
+    <!-- Schedule (ცხრილი) -->
+    <span data-i18n="sch.page.title">📅 განრიგი</span>
+    <span data-i18n="sch.page.sub">დააწექი დღეს, ნახე timeline-ი</span>
+    <span data-i18n="sch.fab.add">ლექცია</span>
+    <span data-i18n="sch.add.title">დაამატე ლექცია</span>
+    <span data-i18n="sch.add.day">დღე</span>
+    <span data-i18n="sch.add.subject">საგანი</span>
+    <span data-i18n="sch.add.subjectPh">მაგ. კალკულუსი I</span>
+    <span data-i18n="sch.add.start">დაწყება</span>
+    <span data-i18n="sch.add.end">დასასრული</span>
+    <span data-i18n="sch.add.room">აუდიტორია</span>
+    <span data-i18n="sch.add.roomPh">მაგ. 207, კ.II</span>
+    <span data-i18n="sch.add.lecturer">ლექტორი</span>
+    <span data-i18n="sch.add.lecturerPh">გვარი, სახელი</span>
+    <span data-i18n="sch.add.submit">დამატება</span>
+    <span data-i18n="sch.toast.added">დაემატა</span>
+    <span data-i18n="sch.detail.time">⏰ დრო</span>
+    <span data-i18n="sch.detail.room">📍 აუდიტორია</span>
+    <span data-i18n="sch.detail.lecturer">👤 ლექტორი</span>
+    <span data-i18n="sch.detail.day">📅 დღე</span>
+    <span data-i18n="sch.comments.title">💬 კომენტარები</span>
+    <span data-i18n="sch.comments.placeholder">დაწერე კომენტარი ლექციაზე...</span>
+    <span data-i18n="sch.comments.submit">დამატება</span>
+    <span data-i18n="sch.comments.empty">ჯერ კომენტარი არ არის</span>
+    <span data-i18n="sch.comments.del">წაშლა</span>
+    <span data-i18n="sch.comments.toastAdded">კომენტარი დაემატა</span>
+    <span data-i18n="sch.detail.delete">🗑 წაშლა</span>
+    <span data-i18n="sch.detail.close">დახურვა</span>
+    <span data-i18n="sch.empty.day">ამ დღეს ლექციები არ გაქვს</span>
+    <span data-i18n="sch.empty.add">+ დაამატე ლექცია</span>
+    <span data-i18n="sch.badge.live">● მიმდინარეობს</span>
+    <span data-i18n="sch.badge.past">დასრულდა</span>
+    <span data-i18n="sch.badge.future">დაგეგმილი</span>
+    <span data-i18n="sch.badge.soon">იწყება {mm}:{ss}-ში</span>
+    <span data-i18n="sch.swipe.details">დეტალები</span>
+    <span data-i18n="sch.timeline.del">წაშლა</span>
+    <span data-i18n="sch.today.next">შემდეგი</span>
+    <span data-i18n="sch.today.nextWithDay">დღეს — შემდეგი</span>
+    <span data-i18n="sch.today.badge">დღეს</span>
+    <span data-i18n="sch.day.countSuffix">ლექცია</span>
+    <span data-i18n="sch.week.title">📆 კვირის მიმოხილვა</span>
+    <span data-i18n="sch.week.aria">ლექციის დეტალები: {title}</span>
+
+    <!-- ========== Auth (Login / Register) ========== -->
+    <span data-i18n="auth.btn.loading">იტვირთება…</span>
+    <span data-i18n="auth.btn.sending">იგზავნება…</span>
+    <span data-i18n="auth.toast.welcome">მოგესალმები</span>
+    <span data-i18n="auth.toast.failed">ვერ მოხერხდა</span>
+    <span data-i18n="auth.toast.checkEmail">შეამოწმე ფოსტა</span>
+    <span data-i18n="auth.toast.registered">რეგისტრაცია წარმატებულია</span>
+    <span data-i18n="auth.resend.ok">გადამოწმების წერილი ხელახლა გაიგზავნა</span>
+    <span data-i18n="auth.resend.fail">ვერ გაიგზავნა</span>
+    <span data-i18n="auth.verify.title">გადაამოწმე ელფოსტა</span>
+    <span data-i18n="auth.verify.body">გავაგზავნეთ დადასტურების ბმული მისამართზე <b>{email}</b>.<br/>გახსენი წერილი (და Spam საქაღალდე), დააჭირე ბმულს, შემდეგ დაბრუნდი და გაიარე შესვლა.</span>
+    <span data-i18n="auth.verify.resendBtn">ხელახლა გაგზავნა</span>
+    <span data-i18n="auth.verify.toLogin">შესვლის გვერდი</span>
+    <span data-i18n="auth.terms.close">დახურვა</span>
+    <span data-i18n="auth.terms.ok">გასაგებია</span>
+    <span data-i18n="auth.terms.link.terms">📜 Terms of Use</span>
+    <span data-i18n="auth.terms.link.privacy">🔒 Privacy Policy</span>
+    <span data-i18n="auth.terms.link.community">👥 Community Guidelines</span>
+    <span data-i18n="auth.terms.link.copyright">©️ Copyright / Takedown</span>
+    <span data-i18n="auth.terms.linksAria">წესები და პირობები</span>
+
+    <!-- ========== Onboarding ========== -->
+    <span data-i18n="onb.toast.choose">აირჩიე უნივერსიტეტი და ფაკულტეტი</span>
+    <span data-i18n="onb.toast.saved">✓ შენახულია</span>
+    <span data-i18n="onb.toast.err">შეცდომა</span>
+    <span data-i18n="onb.hello">მოგესალმებით, {name}!</span>
+    <span data-i18n="onb.sub">აირჩიე უნივერსიტეტი და ფაკულტეტი.</span>
+    <span data-i18n="onb.warn">⚠ არჩევანი მუდმივია.</span>
+    <span data-i18n="onb.label.uni">უნივერსიტეტი</span>
+    <span data-i18n="onb.label.fac">ფაკულტეტი</span>
+    <span data-i18n="onb.opt.pickUni">— აირჩიე უნივერსიტეტი —</span>
+    <span data-i18n="onb.opt.pickFac">— აირჩიე ფაკულტეტი —</span>
+    <span data-i18n="onb.opt.pickUniFirst">— ჯერ აირჩიე უნივერსიტეტი —</span>
+    <span data-i18n="onb.submit">დადასტურება</span>
+
+    <!-- ========== FAQ ========== -->
+    <span data-i18n="faq.page.title">❓ ხშირად დასმული კითხვები</span>
+    <span data-i18n="faq.page.sub">აქ თავმოყრილია სტუდენტებისთვის ყველაზე საჭირო პასუხები.</span>
+    <span data-i18n="faq.crumbs.home">მთავარი</span>
+    <span data-i18n="faq.crumbs.self">ხშირად დასმული კითხვები</span>
+    <span data-i18n="faq.empty">თქვენი ფაკულტეტისთვის ჯერ არ დაემატებულა კითხვები.</span>
+  </div>
+
+  <script>
+    // T(key, vars?) — i18n helper. ეძებს #i18n [data-i18n=key] და აბრუნებს innerHTML-ს
+    // {var} შაბლონის ცვლადებით. დაკარგული key — აბრუნებს key-ს (debug-friendly).
+    (function(){
+      var cache = null;
+      function ensure(){
+        if (cache) return cache;
+        cache = {};
+        var nodes = document.querySelectorAll("#i18n [data-i18n]");
+        for (var i = 0; i < nodes.length; i++) {
+          cache[nodes[i].getAttribute("data-i18n")] = nodes[i].innerHTML;
+        }
+        return cache;
+      }
+      window.T = function(key, vars){
+        var dict = ensure();
+        var s = Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : key;
+        if (vars) {
+          s = s.replace(/\{(\w+)\}/g, function(_, k){
+            return vars[k] != null ? String(vars[k]) : "";
+          });
+        }
+        return s;
+      };
+      // dev: ცოცხალი edit DevTools-ში — cache reset მოაშორებს ძველ მნიშვნელობებს
+      window.T.reset = function(){ cache = null; };
+    })();
+  </script>
+
+  <script>
+
+    (function () {
+      // ფაილების კონსოლიდაცია: ბრაუზერი იღებს ერთ bundle-ს (1 HTTP request)
+      // ნაცვლად 30+ ცალკეული ES მოდულისა. dev-ისთვის ?src=1 აბრუნებს ESM source-ს.
+      var useSource = location.search.indexOf("src=1") !== -1;
+      var script = document.createElement("script");
+      if (useSource && "noModule" in HTMLScriptElement.prototype && location.protocol !== "file:") {
+        script.type = "module";
+        script.src = "./js/app.js?v=20260623-source-modules";
+      } else {
+        script.src = "./js/app.bundle.js?v=20260626-campusi";
+      }
+      document.currentScript.after(script);
+    })();
+  </script>
+
+  <!-- iOS install hint removed — instructions moved to პროფილი → პარამეტრები -->
+
+
+
+</body>
+</html>
